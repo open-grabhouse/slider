@@ -1,0 +1,8 @@
+{
+  "name": "slider",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "angular": ">=1.2.0"
+  }
+}
