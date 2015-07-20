@@ -1,5 +1,6 @@
 ! function(a) {
     "use strict";
+
     a.module("ngSlider", []).directive("slider", ["$compile", "$templateCache", "$timeout", "$window", "slider", function(b, c, d, e, f) {
         return {
             restrict: "AE",
@@ -9,6 +10,13 @@
             },
             priority: 1,
             link: function(g, h, i, j) {
+                d(function(){
+                    var splittedValue = j.$viewValue.split(';');
+                    g.options.budgetValues = {
+                        min:splittedValue[0],
+                        max:splittedValue[1]
+                    };
+                });
                 function k() {
                     a.element(e).bind("resize", function() {
                         g.slider.onresize()
@@ -89,11 +97,7 @@ function(a) {
 }(angular),
 function(a) {
     "use strict";
-    a.module("ngSlider").factory("budgetStore",[function(){
-        return {
-            budget:{}
-        }
-    }]).factory("sliderUtils", ["$window", function(a) {
+    a.module("ngSlider").factory("sliderUtils", ["$window", function(a) {
         return {
             offset: function(a) {
                 var b = a[0],
@@ -125,7 +129,7 @@ function(a) {
 }(angular),
 function(a) {
     "use strict";
-    a.module("ngSlider").factory("sliderDraggable", ["sliderUtils","budgetStore", function(b,budgetStore) {
+    a.module("ngSlider").factory("sliderDraggable", ["sliderUtils", function(b) {
         function c() {
             this._init.apply(this, arguments)
         }
@@ -201,10 +205,7 @@ function(a) {
         }, c.prototype._mousemove = function(a) {
             this.is.toclick = !1;
             var b = this._getPageCoords(a);
-            this.onmousemove(a, b.x - this.cx, b.y - this.cy)
-            var inpVal = document.getElementById('mySlider').value.split(';');
-            budgetStore.budget.min=parseInt(inpVal[0],10);
-            budgetStore.budget.max=parseInt(inpVal[1],10);
+            this.onmousemove(a, b.x - this.cx, b.y - this.cy);
         }, c.prototype._mouseup = function(a) {
             if (this.is.drag) {
                 this.is.drag = !1;
@@ -264,7 +265,8 @@ function(a) {
 }(angular),
 function(a) {
     "use strict";
-    a.module("ngSlider").factory("slider", ["sliderPointer", "sliderConstants", "sliderUtils", function(b, c, d) {
+
+    a.module("ngSlider").factory("slider", ["$timeout", "sliderPointer", "sliderConstants", "sliderUtils", function($timeout, b, c, d) {
         function e() {
             return this.init.apply(this, arguments)
         }
@@ -397,6 +399,16 @@ function(a) {
                 a.style.marginLeft = -a.clientWidth / 2
             })
         }, e.prototype.redraw = function(a) {
+            var that = this;
+            $timeout(function(){
+                var optionsRef = angular.element(that.o.labels[0].o.find("span")[0]).scope().options.budgetValues,
+                    s = that.o.labels[0].o.find("span")[0].textContent || that.o.labels[0].o.find("span")[0].innerText,
+                    splittedVals = s.replace(/\s/g,"").split("–"),
+                    s2 = that.o.labels[1].o.find("span")[0].textContent || that.o.labels[1].o.find("span")[0].innerText;
+
+                optionsRef.min = splittedVals[0];
+                optionsRef.max = s2;
+            });
             if (!this.is.init) return this.o.pointers[0] && !this.o.pointers[1] && (this.originValue = this.o.pointers[0].value.prc, this.o.indicators[0].css(this.settings.vertical ? {
                 top: 0,
                 height: this.o.pointers[0].value.prc + "%"
